@@ -1,0 +1,72 @@
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+.color_control {
+    position: fixed; /* 使用绝对定位 */
+    top: 10px; /* 距离顶部10像素 */
+    left: 10px; /* 距离左侧10像素 */
+    background-color: #e0e0e0; /* 背景颜色 */
+    padding: 10px; /* 内边距 */
+    border-radius: 5px; /* 圆角 */
+    box-shadow: 0 0 5px rgba(117, 117, 117, 0.5); /* 阴影效果 */
+    z-index: 10; /* 确保在最上层 */
+}
+.color-picker, .opacity-picker {
+    display: flex; /* 使用 Flexbox 布局 */
+    align-items: center; /* 垂直居中 */
+    margin-bottom: 10px; /* 控件之间的间距 */
+}
+.container {
+    position: absolute; /* 使用绝对定位 */
+    text-align: center;
+    display: flex;
+    flex-direction: column; /* 让内容垂直排列 */
+    align-items: center; /* 垂直居中 */
+    width: 100%; /* 容器宽度为100% */
+    max-width: none; /* 确保没有最大宽度限制 */
+}
+
+canvas {
+   
+    cursor: crosshair;
+    width: 100%; /* 使画布宽度为100% */
+    height: auto; /* 高度自动，保持比例 */
+    max-width: 2114.44px; /* 设置画布的最大宽度 */
+    margin: 0; /* 确保没有额外的 margin */
+    padding: 0; /* 确保没有额外的 padding */
+}
+
+.controls {
+    position: fixed; /* 使用固定定位 */
+    bottom: 10px; /* 距离底部10像素 */
+    left: 50%; /* 左侧50% */
+    transform: translateX(-50%); /* 向左移动自身宽度的50%以实现居中 */
+    background-color: #e0e0e0; /* 背景颜色 */
+    padding: 10px; /* 内边距 */
+    border-radius: 5px; /* 圆角 */
+    box-shadow: 0 0 5px rgba(148, 148, 148, 0.5); /* 阴影效果 */
+    z-index: 10; /* 确保在最上层 */
+}
+
+button {
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #83bcf1;
+    color: white;
+    width: 100px;
+    height: 40px;
+    margin-bottom: 10px;
+    border-radius: 80px;
+}
+button:hover{
+    opacity: 0.8;
+}

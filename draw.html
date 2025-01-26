@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!!!</title>
+    <link rel="stylesheet" href="draw.css">
+</head>
+<body>
+   <div class="color_control">
+        <div class="color-picker">
+            <label for="color">选择颜色:</label>
+            <input type="color" id="color" value="#000000">
+        </div>
+
+        <div class="opacity-picker">
+            <label for="opacity">线条不透明度:</label>
+            <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
+        </div>
+    </div>
+    
+    <div class="container">
+        <canvas id="drawingCanvas"></canvas>
+        <div class="controls">
+            <label for="lineWidth">线条粗细:</label>
+            <input type="range" id="lineWidth" min="1" max="20" value="1">
+            <button id="brushBtn">画笔</button>
+            <button id="eraserBtn">橡皮擦</button>
+            <button id="saveBtn">保存图画</button>
+            <button id="clearBtn">清空画布</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const saveBtn = document.getElementById('saveBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const lineWidthInput = document.getElementById('lineWidth');
+        const brushBtn = document.getElementById('brushBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const colorInput = document.getElementById('color');
+        const opacityInput = document.getElementById('opacity');
+
+        // 设置画布的初始宽度和高度
+        canvas.width =  2114.44; // 初始宽度
+        canvas.height = 2114.44; // 初始高度
+
+        let painting = false;
+        let eraserMode = false; // 橡皮擦模式标志
+        let lastX, lastY; // 记录上一次的坐标
+
+        function getMousePosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left, // 计算相对于画布的 X 坐标
+                y: e.clientY - rect.top   // 计算相对于画布的 Y 坐标
+            };
+        }
+
+        function startPosition(e) {
+            painting = true;
+            const { x, y } = getMousePosition(e);
+            lastX = x;
+            lastY = y;
+            draw(e); // 立即绘制起点
+        }
+
+        function endPosition() {
+            painting = false;
+            ctx.beginPath(); // 开始新的路径
+        }
+
+        function draw(e) {
+            if (!painting) return;
+
+            const { x, y } = getMousePosition(e); // 获取鼠标位置
+
+            ctx.lineWidth = lineWidthInput.value; // 使用输入框中的值设置线宽
+            ctx.lineCap = 'round'; // 线条圆角
+            ctx.strokeStyle = eraserMode ? 'white' : colorInput.value; // 如果是橡皮擦模式，则使用白色
+            ctx.globalAlpha = opacityInput.value; // 设置不透明度
+
+            ctx.beginPath(); // 开始新的路径
+            ctx.moveTo(lastX, lastY); // 移动到上一次鼠标位置
+            ctx.lineTo(x, y); // 使用鼠标当前位置绘制线条
+            ctx.stroke(); // 绘制线条
+
+            lastX = x; // 更新上一次的坐标
+            lastY = y; // 更新上一次的坐标
+        }
+
+        brushBtn.addEventListener('click', () => {
+            eraserMode = false; // 切换到画笔模式
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            eraserMode = true; // 切换到橡皮擦模式
+        });
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+
+        saveBtn.addEventListener('click', () => {
+            const dataURL = canvas.toDataURL('image/png'); // 将画布转换为图像
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'myDrawing.png'; // 保存的文件名
+            link.click(); // 自动点击链接以下载
+        });
+
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
+        });
+    </script>
+</body>
+</html>
