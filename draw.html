@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Birthday!!!</title>
-    <link rel="stylesheet" href="/draw/draw.css">
+    <link rel="stylesheet" href="draw.css">
 </head>
 <body>
    <div class="color_control">
@@ -41,23 +41,27 @@
         const eraserBtn = document.getElementById('eraserBtn');
         const colorInput = document.getElementById('color');
         const opacityInput = document.getElementById('opacity');
-
+    
         // 设置画布的初始宽度和高度
-        canvas.width =  2114.44; // 初始宽度
+        canvas.width = 2114.44; // 初始宽度
         canvas.height = 2114.44; // 初始高度
-
+    
         let painting = false;
         let eraserMode = false; // 橡皮擦模式标志
         let lastX, lastY; // 记录上一次的坐标
-
+        let scale = 1; // 初始化缩放比例
+    
         function getMousePosition(e) {
             const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
             return {
-                x: e.clientX - rect.left, // 计算相对于画布的 X 坐标
-                y: e.clientY - rect.top   // 计算相对于画布的 Y 坐标
+                x: (clientX - rect.left) / scale, // 根据缩放比例计算相对于画布的 X 坐标
+                y: (clientY - rect.top) / scale    // 根据缩放比例计算相对于画布的 Y 坐标
             };
         }
-
+    
         function startPosition(e) {
             painting = true;
             const { x, y } = getMousePosition(e);
@@ -65,43 +69,69 @@
             lastY = y;
             draw(e); // 立即绘制起点
         }
-
+    
         function endPosition() {
             painting = false;
             ctx.beginPath(); // 开始新的路径
         }
-
+    
         function draw(e) {
             if (!painting) return;
-
-            const { x, y } = getMousePosition(e); // 获取鼠标位置
-
+    
+            const { x, y } = getMousePosition(e); // 获取鼠标或触摸位置
+    
             ctx.lineWidth = lineWidthInput.value; // 使用输入框中的值设置线宽
             ctx.lineCap = 'round'; // 线条圆角
             ctx.strokeStyle = eraserMode ? 'white' : colorInput.value; // 如果是橡皮擦模式，则使用白色
             ctx.globalAlpha = opacityInput.value; // 设置不透明度
-
+    
             ctx.beginPath(); // 开始新的路径
-            ctx.moveTo(lastX, lastY); // 移动到上一次鼠标位置
-            ctx.lineTo(x, y); // 使用鼠标当前位置绘制线条
+            ctx.moveTo(lastX, lastY); // 移动到上一次鼠标/触摸位置
+            ctx.lineTo(x, y); // 使用当前位置绘制线条
             ctx.stroke(); // 绘制线条
-
+    
             lastX = x; // 更新上一次的坐标
             lastY = y; // 更新上一次的坐标
         }
-
+    
         brushBtn.addEventListener('click', () => {
             eraserMode = false; // 切换到画笔模式
         });
-
+    
         eraserBtn.addEventListener('click', () => {
             eraserMode = true; // 切换到橡皮擦模式
         });
-
+    
+        // 添加触摸事件
+        canvas.addEventListener('touchstart', startPosition);
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw);
+    
+        // 添加鼠标事件
         canvas.addEventListener('mousedown', startPosition);
         canvas.addEventListener('mouseup', endPosition);
         canvas.addEventListener('mousemove', draw);
-
+    
+        // 实现缩放功能
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault(); // 阻止默认的页面缩放行为
+            const mousePos = getMousePosition(e); // 获取鼠标位置
+    
+            if (e.deltaY < 0) {
+                scale *= 1.1; // 放大
+            } else {
+                scale /= 1.1; // 缩小
+            }
+    
+            // 清空画布并重新绘制
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.scale(scale, scale); // 应用缩放
+            draw(); // 重新绘制内容
+            ctx.restore();
+        });
+    
+        // 保存图像
         saveBtn.addEventListener('click', () => {
             const dataURL = canvas.toDataURL('image/png'); // 将画布转换为图像
             const link = document.createElement('a');
@@ -109,7 +139,8 @@
             link.download = 'myDrawing.png'; // 保存的文件名
             link.click(); // 自动点击链接以下载
         });
-
+    
+        // 清空画布
         clearBtn.addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
         });
