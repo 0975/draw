@@ -5,28 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Birthday!!!</title>
     <link rel="stylesheet" href="draw.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* 防止滚动 */
+        }
+        #drawingCanvas {
+            border: 1px solid #000; /* 可选: 画布边框 */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0; /* 画布在视频下方 */
+            cursor: crosshair; /* 画布光标样式 */
+        }
+        #videoElement {
+            position: absolute; /* 绝对定位 */
+            top: 50%; /* 垂直居中 */
+            left: 50%; /* 水平居中 */
+            transform: translate(-50%, -50%); /* 完成居中 */
+            z-index: 1; /* 确保视频在画布上方 */
+            display: block; /* 显示视频 */
+        }
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .color_control {
+            position: fixed; /* 使用绝对定位 */
+            top: 10px; /* 距离顶部10像素 */
+            left: 10px; /* 距离左侧10像素 */
+            background-color: #e0e0e0; /* 背景颜色 */
+            padding: 10px; /* 内边距 */
+            border-radius: 5px; /* 圆角 */
+            box-shadow: 0 0 5px rgba(117, 117, 117, 0.5); /* 阴影效果 */
+            z-index: 10; /* 确保在最上层 */
+        }
+        .color-picker, .opacity-picker {
+            display: flex; /* 使用 Flexbox 布局 */
+            align-items: center; /* 垂直居中 */
+            margin-bottom: 10px; /* 控件之间的间距 */
+        }
+        .controls {
+            position: fixed; /* 使用固定定位 */
+            bottom: 10px; /* 距离底部10像素 */
+            left: 50%; /* 左侧50% */
+            transform: translateX(-50%); /* 向左移动自身宽度的50%以实现居中 */
+            background-color: #e0e0e0; /* 背景颜色 */
+            padding: 10px; /* 内边距 */
+            border-radius: 5px; /* 圆角 */
+            box-shadow: 0 0 5px rgba(148, 148, 148, 0.5); /* 阴影效果 */
+            z-index: 10; /* 确保在最上层 */
+        }
+        button {
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #83bcf1;
+            color: white;
+            width: 125px;
+            height: 40px;
+            border-radius: 80px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+    </style>
 </head>
 <body>
-   <div class="color_control">
+    <div class="color_control">
         <div class="color-picker">
             <label for="color">选择颜色:</label>
             <input type="color" id="color" value="#000000">
         </div>
-
         <div class="opacity-picker">
             <label for="opacity">线条不透明度:</label>
             <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
         </div>
     </div>
-    
+
     <div class="container">
         <canvas id="drawingCanvas"></canvas>
-        <div class="controls">
+        <video id="videoElement" width="640" height="360" autoplay>
+            <source src="chiikawa.mp4" type="video/mp4"> <!-- 替换为您的视频文件 -->
+            您的浏览器不支持 video 标签。
+        </video>
+        <div class="controls" id="controls">
             <label for="lineWidth">线条粗细:</label>
             <input type="range" id="lineWidth" min="1" max="20" value="1">
             <button id="brushBtn">画笔</button>
             <button id="eraserBtn">橡皮擦</button>
-            <button id="saveBtn">保存图画</button>
+            <button id="savePNGBtn">保存为 PNG</button>
+            <button id="saveJPEGBtn">保存为 JPEG</button>
             <button id="clearBtn">清空画布</button>
         </div>
     </div>
@@ -34,74 +106,125 @@
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
-        const saveBtn = document.getElementById('saveBtn');
         const clearBtn = document.getElementById('clearBtn');
         const lineWidthInput = document.getElementById('lineWidth');
         const brushBtn = document.getElementById('brushBtn');
         const eraserBtn = document.getElementById('eraserBtn');
         const colorInput = document.getElementById('color');
         const opacityInput = document.getElementById('opacity');
-    
-        // 设置画布的初始宽度和高度
-        canvas.width = 2114.44; // 初始宽度
-        canvas.height = 2114.44; // 初始高度
-    
+        const videoElement = document.getElementById('videoElement');
+
+        // 初始化画布大小
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;  // 设置画布宽度为窗口宽度
+            canvas.height = window.innerHeight; // 设置画布高度为窗口高度
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // 初始调用以设置画布尺寸
+
+        // 监听视频播放结束事件
+        videoElement.addEventListener('ended', () => {
+            videoElement.style.display = 'none'; // 隐藏视频元素
+        });
+
+        // 自动播放视频
+        videoElement.play(); // 确保视频开始播放
+
         let painting = false;
         let eraserMode = false; // 橡皮擦模式标志
         let lastX, lastY; // 记录上一次的坐标
-        let scale = 1; // 初始化缩放比例
-    
+
         function getMousePosition(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
+
             return {
-                x: (clientX - rect.left) / scale, // 根据缩放比例计算相对于画布的 X 坐标
-                y: (clientY - rect.top) / scale    // 根据缩放比例计算相对于画布的 Y 坐标
+                x: clientX - rect.left, // 计算相对于画布的 X 坐标
+                y: clientY - rect.top    // 计算相对于画布的 Y 坐标
             };
         }
-    
+
         function startPosition(e) {
+            e.preventDefault(); // 阻止默认行为
             painting = true;
             const { x, y } = getMousePosition(e);
             lastX = x;
             lastY = y;
             draw(e); // 立即绘制起点
         }
-    
-        function endPosition() {
+
+        function endPosition(e) {
+            e.preventDefault(); // 阻止默认行为
             painting = false;
             ctx.beginPath(); // 开始新的路径
         }
-    
+
         function draw(e) {
             if (!painting) return;
-    
+
+            e.preventDefault(); // 阻止默认行为
             const { x, y } = getMousePosition(e); // 获取鼠标或触摸位置
-    
-            ctx.lineWidth = lineWidthInput.value; // 使用输入框中的值设置线宽
+
+            ctx.lineWidth = lineWidthInput.value; // 设置线宽
             ctx.lineCap = 'round'; // 线条圆角
-            ctx.strokeStyle = eraserMode ? 'white' : colorInput.value; // 如果是橡皮擦模式，则使用白色
+            ctx.strokeStyle = eraserMode ? 'white' : colorInput.value; // 橡皮擦模式
             ctx.globalAlpha = opacityInput.value; // 设置不透明度
-    
+
             ctx.beginPath(); // 开始新的路径
-            ctx.moveTo(lastX, lastY); // 移动到上一次鼠标/触摸位置
-            ctx.lineTo(x, y); // 使用当前位置绘制线条
-            ctx.stroke(); // 绘制线条
-    
-            lastX = x; // 更新上一次的坐标
-            lastY = y; // 更新上一次的坐标
+            ctx.moveTo(lastX, lastY); // 移动到上一次坐标
+            ctx.lineTo(x, y); // 绘制线条
+            ctx.stroke(); // 绘制
+
+            lastX = x; // 更新坐标
+            lastY = y; // 更新坐标
         }
-    
+
         brushBtn.addEventListener('click', () => {
             eraserMode = false; // 切换到画笔模式
         });
-    
+
         eraserBtn.addEventListener('click', () => {
             eraserMode = true; // 切换到橡皮擦模式
         });
-    
+
+        // 保存 PNG 图像（无背景）
+        document.getElementById('savePNGBtn').addEventListener('click', () => {
+            const dataURL = canvas.toDataURL('image/png'); // 将画布转换为 PNG 图像
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'myDrawing.png'; // 保存的文件名
+            link.click(); // 自动点击链接以下载
+        });
+
+        // 保存 JPEG 图像（包含背景）
+        document.getElementById('saveJPEGBtn').addEventListener('click', () => {
+            // 创建临时画布
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+
+            // 填充背景颜色
+            tempCtx.fillStyle = '#ffffff'; // 设置背景颜色
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); // 填充背景
+            
+            // 将原画布的内容绘制到临时画布上
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            const dataURL = tempCanvas.toDataURL('image/jpeg'); // 将临时画布转换为 JPEG 图像
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'myDrawing.jpg'; // 保存的文件名
+            link.click(); // 自动点击链接以下载
+        });
+
+        // 清空画布
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
+        });
+
         // 添加触摸事件
         canvas.addEventListener('touchstart', startPosition);
         canvas.addEventListener('touchend', endPosition);
@@ -111,39 +234,6 @@
         canvas.addEventListener('mousedown', startPosition);
         canvas.addEventListener('mouseup', endPosition);
         canvas.addEventListener('mousemove', draw);
-    
-        // 实现缩放功能
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault(); // 阻止默认的页面缩放行为
-            const mousePos = getMousePosition(e); // 获取鼠标位置
-    
-            if (e.deltaY < 0) {
-                scale *= 1.1; // 放大
-            } else {
-                scale /= 1.1; // 缩小
-            }
-    
-            // 清空画布并重新绘制
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.scale(scale, scale); // 应用缩放
-            draw(); // 重新绘制内容
-            ctx.restore();
-        });
-    
-        // 保存图像
-        saveBtn.addEventListener('click', () => {
-            const dataURL = canvas.toDataURL('image/png'); // 将画布转换为图像
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = 'myDrawing.png'; // 保存的文件名
-            link.click(); // 自动点击链接以下载
-        });
-    
-        // 清空画布
-        clearBtn.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
-        });
     </script>
 </body>
 </html>
