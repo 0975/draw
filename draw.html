@@ -19,28 +19,7 @@
             z-index: 0; /* 画布在视频下方 */
             cursor: crosshair; /* 画布光标样式 */
         }
-        #videoElement {
-            position: absolute; /* 绝对定位 */
-            top: 50%; /* 垂直居中 */
-            left: 50%; /* 水平居中 */
-            transform: translate(-50%, -50%); /* 完成居中 */
-            z-index: 1; /* 确保视频在画布上方 */
-            display: none; /* 初始隐藏视频 */
-        }
-        #playButton {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            z-index: 10; /* 确保按钮在最上层 */
-        }
+       
         .container {
             position: relative;
             width: 100%;
@@ -86,17 +65,7 @@
         button:hover {
             opacity: 0.8;
         }
-        #playButton{
-            margin: 0 5px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            background-color: #83bcf1;
-            color: white;
-            width: 125px;
-            height: 40px;
-            border-radius: 80px;
-        }
+       
     </style>
 </head>
 <body>
