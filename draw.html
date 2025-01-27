@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Birthday!!!</title>
-    <link rel="stylesheet" href="/draw/draw.css">
+    <link rel="stylesheet" href="/birth/draw.css">
     <style>
         body, html {
             margin: 0;
@@ -25,7 +25,21 @@
             left: 50%; /* 水平居中 */
             transform: translate(-50%, -50%); /* 完成居中 */
             z-index: 1; /* 确保视频在画布上方 */
-            display: block; /* 显示视频 */
+            display: none; /* 初始隐藏视频 */
+        }
+        #playButton {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            z-index: 10; /* 确保按钮在最上层 */
         }
         .container {
             position: relative;
@@ -72,9 +86,21 @@
         button:hover {
             opacity: 0.8;
         }
+        #playButton{
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #83bcf1;
+            color: white;
+            width: 125px;
+            height: 40px;
+            border-radius: 80px;
+        }
     </style>
 </head>
 <body>
+   
     <div class="color_control">
         <div class="color-picker">
             <label for="color">选择颜色:</label>
@@ -85,13 +111,14 @@
             <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
         </div>
     </div>
-
+    <button id="playButton">点我</button>
     <div class="container">
         <canvas id="drawingCanvas"></canvas>
         <video id="videoElement" width="640" height="360" autoplay>
-            <source src="/chiikawa.mp4" type="video/mp4"> <!-- 替换为您的视频文件 -->
+            <source src="/birth/chiikawa.mp4" type="video/mp4"> <!-- 替换为您的视频文件 -->
             您的浏览器不支持 video 标签。
         </video>
+      
         <div class="controls" id="controls">
             <label for="lineWidth">线条粗细:</label>
             <input type="range" id="lineWidth" min="1" max="20" value="1">
@@ -104,6 +131,9 @@
     </div>
 
     <script>
+        const audioElement = document.getElementById('audioElement');
+
+      
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
         const clearBtn = document.getElementById('clearBtn');
@@ -112,7 +142,6 @@
         const eraserBtn = document.getElementById('eraserBtn');
         const colorInput = document.getElementById('color');
         const opacityInput = document.getElementById('opacity');
-        const videoElement = document.getElementById('videoElement');
 
         // 初始化画布大小
         function resizeCanvas() {
@@ -123,14 +152,7 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas(); // 初始调用以设置画布尺寸
 
-        // 监听视频播放结束事件
-        videoElement.addEventListener('ended', () => {
-            videoElement.style.display = 'none'; // 隐藏视频元素
-        });
-
-        // 自动播放视频
-        videoElement.play(); // 确保视频开始播放
-
+           
         let painting = false;
         let eraserMode = false; // 橡皮擦模式标志
         let lastX, lastY; // 记录上一次的坐标
