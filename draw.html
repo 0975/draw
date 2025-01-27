@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Birthday!!!</title>
-    <link rel="stylesheet" href="/birth/draw.css">
+    <link rel="stylesheet" href="draw.css">
     <style>
         body, html {
             margin: 0;
@@ -111,13 +111,9 @@
             <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
         </div>
     </div>
-    <button id="playButton">点我</button>
+    
     <div class="container">
         <canvas id="drawingCanvas"></canvas>
-        <video id="videoElement" width="640" height="360" autoplay>
-            <source src="/birth/chiikawa.mp4" type="video/mp4"> <!-- 替换为您的视频文件 -->
-            您的浏览器不支持 video 标签。
-        </video>
       
         <div class="controls" id="controls">
             <label for="lineWidth">线条粗细:</label>
@@ -142,6 +138,8 @@
         const eraserBtn = document.getElementById('eraserBtn');
         const colorInput = document.getElementById('color');
         const opacityInput = document.getElementById('opacity');
+        const videoElement = document.getElementById('videoElement');
+        const playButton = document.getElementById('playButton');
 
         // 初始化画布大小
         function resizeCanvas() {
@@ -152,7 +150,9 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas(); // 初始调用以设置画布尺寸
 
-           
+      
+      
+
         let painting = false;
         let eraserMode = false; // 橡皮擦模式标志
         let lastX, lastY; // 记录上一次的坐标
